@@ -294,6 +294,15 @@ table.notion tr:hover td{background:var(--bg2)}
 </head>
 <body>
 
+<div id="login-screen" class="login-screen">
+  <div class="login-panel">
+    <h1>Connexion Google</h1>
+    <p>Connectez-vous avec un compte Google autorisé pour accéder à l’outil staff et activer le suivi en temps réel.</p>
+    <button class="login-btn" onclick="login()">Se connecter avec Google</button>
+    <p style="margin-top:18px;color:var(--text3);font-size:12px;">Firebase Auth doit reconnaître le domaine <strong>notshot1.github.io</strong>.</p>
+  </div>
+</div>
+
 <!-- ── SIDEBAR ── -->
 <nav class="sidebar">
   <div class="sidebar-header">
@@ -362,7 +371,7 @@ table.notion tr:hover td{background:var(--bg2)}
 </nav>
 
 <!-- ── MAIN ── -->
-<main class="main">
+<main class="main hidden" id="app-main">
   <div class="topbar">
     <div class="breadcrumb" id="breadcrumb">
       <span class="page">🎮 Arma Staff</span>
@@ -930,6 +939,8 @@ const allowedEmails = [
 
 const loginBtn = document.getElementById('login-btn');
 const logoutBtn = document.getElementById('logout-btn');
+const appMain = document.getElementById('app-main');
+const loginScreen = document.getElementById('login-screen');
 const usersRef = collection(firestore, 'onlineUsers');
 let checkboxUnsubscribe = null;
 let usersUnsubscribe = null;
@@ -937,6 +948,16 @@ let usersUnsubscribe = null;
 function setAuthMode(signedIn){
   loginBtn.classList.toggle('hidden', signedIn);
   logoutBtn.classList.toggle('hidden', !signedIn);
+}
+
+function showLogin(){
+  if(appMain) appMain.classList.add('hidden');
+  if(loginScreen) loginScreen.classList.remove('hidden');
+}
+
+function hideLogin(){
+  if(loginScreen) loginScreen.classList.add('hidden');
+  if(appMain) appMain.classList.remove('hidden');
 }
 
 function handleUnauthorized(){
@@ -1007,6 +1028,7 @@ async function logout(){
   }
   await signOut(auth);
   stopRealtimeListeners();
+  showLogin();
 }
 
 // ── SYNC STATUS ──
@@ -1075,8 +1097,6 @@ window.toggle = function(li){
     .catch(() => setSyncStatus('offline'));
 };
 
-const usersRef = collection(firestore, 'onlineUsers');
-
 onAuthStateChanged(auth, (user) => {
   if(user){
     console.log('Connecté :', user.displayName);
@@ -1088,12 +1108,14 @@ onAuthStateChanged(auth, (user) => {
 
     setAuthMode(true);
     setSyncStatus('ok');
+    hideLogin();
     startRealtimeListeners();
   } else {
     console.log('Déconnecté');
     setAuthMode(false);
     setSyncStatus('signed-out');
     stopRealtimeListeners();
+    showLogin();
   }
 });
 
