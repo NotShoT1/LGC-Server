@@ -64,6 +64,28 @@ body{display:flex;height:100vh;overflow:hidden;background:var(--bg)}
 .dot-p{background:#6E5DE8}.dot-g{background:#1FAD7E}.dot-a{background:#C8791A}.dot-r{background:#B84A2A}
 .sidebar-footer{padding:10px 12px;border-top:1px solid var(--sidebar3);font-size:11px;color:var(--sidebar-text)}
 
+.login-screen{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(248,248,247,.98);z-index:9999;padding:24px;
+}
+.login-panel{
+  max-width:420px;width:100%;background:#fff;border:1px solid var(--border);border-radius:18px;
+  padding:32px;box-shadow:0 18px 60px rgba(0,0,0,.08);text-align:center;
+}
+.login-panel h1{font-size:24px;margin-bottom:12px;color:var(--text)}
+.login-panel p{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:24px}
+.login-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:12px 18px;
+  border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--text);font-weight:700;
+  cursor:pointer;transition:background .15s,transform .15s;
+}
+.login-btn:hover{background:#f4f4f2;transform:translateY(-1px)}
+.login-avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;border:1px solid var(--border)}
+.auth-pill{display:inline-flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:var(--bg2);font-size:13px;color:var(--text2)}
+.auth-pill span{display:inline-flex;align-items:center;gap:8px}
+.auth-pill button{border:none;background:transparent;color:var(--text2);font-weight:600;cursor:pointer}
+.hidden{display:none!important}
+
 /* ── MAIN ── */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
 .topbar{
@@ -352,7 +374,20 @@ table.notion tr:hover td{background:var(--bg2)}
         <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:#ccc;display:inline-block"></span>
         <span id="sync-label">Connexion...</span>
       </span>
+      <span id="auth-area" class="auth-pill hidden">
+        <span id="user-summary"><img id="user-photo" class="login-avatar" src="" alt="Avatar"><span id="user-name"></span></span>
+        <button id="sign-out" type="button">Déconnexion</button>
+      </span>
       <button class="btn" onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+
+  <div id="login-screen" class="login-screen hidden">
+    <div class="login-panel">
+      <h1>Connexion requise</h1>
+      <p>Pour accéder à l'outil staff, connectez-vous avec votre compte Google autorisé.</p>
+      <button class="login-btn" id="sign-in">Se connecter avec Google</button>
+      <p style="margin-top:18px;color:var(--text3);font-size:12px;">Seuls les comptes staff autorisés peuvent voir et modifier les éléments.</p>
     </div>
   </div>
 
@@ -876,6 +911,7 @@ Semaine 4 : Déploiement + annonce + surveillance</div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ── CONFIG FIREBASE ──
 const firebaseConfig = {
@@ -890,6 +926,42 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+const allowedEmails = [
+  // Remplacez par les adresses e-mail staff autorisées.
+  'admin@example.com',
+  'staff@example.com'
+];
+
+const loginScreen = document.getElementById('login-screen');
+const authArea = document.getElementById('auth-area');
+const userNameEl = document.getElementById('user-name');
+const userPhotoEl = document.getElementById('user-photo');
+const signOutButton = document.getElementById('sign-out');
+
+function showLogin(){
+  loginScreen.classList.remove('hidden');
+  authArea.classList.add('hidden');
+  document.body.classList.add('auth-required');
+}
+
+function hideLogin(){
+  loginScreen.classList.add('hidden');
+  authArea.classList.remove('hidden');
+  document.body.classList.remove('auth-required');
+}
+
+function showApp(){
+  hideLogin();
+}
+
+function handleUnauthorized(user){
+  alert('Ce compte Google n’est pas autorisé à accéder à cet outil.');
+  signOut(auth).catch(console.error);
+  showLogin();
+}
 
 // ── SYNC STATUS ──
 function setSyncStatus(status){
@@ -901,6 +973,9 @@ function setSyncStatus(status){
   } else if(status === 'saving'){
     dot.style.background = '#C8791A';
     label.textContent = 'Sauvegarde...';
+  } else if(status === 'signed-out'){
+    dot.style.background = '#B84A2A';
+    label.textContent = 'Non connecté';
   } else {
     dot.style.background = '#B84A2A';
     label.textContent = 'Hors ligne';
@@ -953,6 +1028,46 @@ window.toggle = function(li){
     .then(() => setSyncStatus('ok'))
     .catch(() => setSyncStatus('offline'));
 };
+
+function signInGoogle(){
+  signInWithPopup(auth, provider)
+    .catch((error) => {
+      console.error(error);
+      alert('Connexion Google échouée. Réessayez.');
+    });
+}
+
+function signOutGoogle(){
+  signOut(auth).then(() => {
+    setSyncStatus('signed-out');
+    showLogin();
+  }).catch((error) => {
+    console.error(error);
+  });
+}
+
+signOutButton.addEventListener('click', signOutGoogle);
+
+document.getElementById('sign-in').addEventListener('click', signInGoogle);
+
+onAuthStateChanged(auth, (user) => {
+  if(user){
+    const email = user.email || '';
+    if(!allowedEmails.includes(email)){
+      handleUnauthorized(user);
+      return;
+    }
+
+    userNameEl.textContent = user.displayName || email;
+    userPhotoEl.src = user.photoURL || 'https://www.gravatar.com/avatar/?d=mp&f=y';
+    userPhotoEl.alt = user.displayName ? `${user.displayName} avatar` : 'Avatar';
+    showApp();
+    setSyncStatus('ok');
+  } else {
+    showLogin();
+    setSyncStatus('signed-out');
+  }
+});
 
 // ── NAVIGATION ──
 const pages = {
