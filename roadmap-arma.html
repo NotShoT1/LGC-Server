@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🗺️ Roadmap — Serveur Arma Reforger</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#FFFFFF;
+  --bg2:#F7F7F5;
+  --bg3:#EFEDE8;
+  --sidebar:#191919;
+  --sidebar2:#252525;
+  --sidebar3:#2F2F2F;
+  --sidebar-text:#9B9B9B;
+  --sidebar-active:#FFFFFF;
+  --text:#37352F;
+  --text2:#6B6B6B;
+  --text3:#9B9B9B;
+  --border:#E9E9E7;
+  --purple:#6E5DE8;
+  --purple-bg:#EEEDFE;
+  --green:#1FAD7E;
+  --green-bg:#E1F5EE;
+  --amber:#C8791A;
+  --amber-bg:#FAEEDA;
+  --red:#B84A2A;
+  --red-bg:#FAECE7;
+  --blue:#1667B5;
+  --blue-bg:#E6F1FB;
+  --gray:#555550;
+  --gray-bg:#F1EFE8;
+  --radius:4px;
+}
+html{font-family:'Sora',sans-serif;font-size:15px;color:var(--text)}
+body{display:flex;height:100vh;overflow:hidden;background:var(--bg)}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:240px;flex-shrink:0;background:var(--sidebar);
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:width .2s ease;
+}
+.sidebar-header{padding:14px 12px 8px;border-bottom:1px solid var(--sidebar3)}
+.ws-name{font-size:13px;font-weight:600;color:var(--sidebar-active);letter-spacing:.01em;padding:6px 8px;border-radius:var(--radius);display:flex;align-items:center;gap:8px}
+.ws-dot{width:20px;height:20px;background:linear-gradient(135deg,#6E5DE8,#1FAD7E);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px}
+.sidebar-nav{flex:1;overflow-y:auto;padding:8px 0}
+.sidebar-nav::-webkit-scrollbar{width:0}
+.nav-section{padding:4px 12px;font-size:11px;font-weight:500;color:var(--sidebar-text);text-transform:uppercase;letter-spacing:.08em;margin-top:12px;margin-bottom:2px}
+.nav-item{
+  display:flex;align-items:center;gap:8px;
+  padding:5px 12px;cursor:pointer;border-radius:0;
+  font-size:13px;color:var(--sidebar-text);
+  transition:background .1s,color .1s;position:relative;
+  border-left:2px solid transparent;
+}
+.nav-item:hover{background:var(--sidebar2);color:#DDDDDD}
+.nav-item.active{background:var(--sidebar2);color:var(--sidebar-active);border-left-color:var(--purple)}
+.nav-item .icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.nav-item .label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav-item .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-p{background:#6E5DE8}.dot-g{background:#1FAD7E}.dot-a{background:#C8791A}.dot-r{background:#B84A2A}
+.sidebar-footer{padding:10px 12px;border-top:1px solid var(--sidebar3);font-size:11px;color:var(--sidebar-text)}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.topbar{
+  height:44px;flex-shrink:0;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:8px;
+  font-size:13px;color:var(--text2);background:var(--bg);
+}
+.breadcrumb{display:flex;align-items:center;gap:6px}
+.breadcrumb span{color:var(--text3)}
+.breadcrumb .page{color:var(--text2);font-weight:500}
+.breadcrumb .current{color:var(--text);font-weight:600}
+.topbar-right{margin-left:auto;display:flex;gap:8px}
+.btn{
+  padding:4px 10px;border-radius:var(--radius);font-size:12px;font-weight:500;
+  cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--text2);
+  font-family:'Sora',sans-serif;transition:background .1s;
+}
+.btn:hover{background:var(--bg2)}
+
+.content{flex:1;overflow-y:auto;padding:48px 96px 96px}
+.content::-webkit-scrollbar{width:6px}
+.content::-webkit-scrollbar-track{background:transparent}
+.content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── PAGE ── */
+.page{display:none;animation:fadeIn .15s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+.page-icon{font-size:52px;margin-bottom:8px;line-height:1}
+.page-title{font-size:34px;font-weight:700;color:var(--text);line-height:1.2;margin-bottom:6px;letter-spacing:-.02em}
+.page-subtitle{font-size:14px;color:var(--text3);margin-bottom:32px;font-weight:400}
+.page-divider{height:1px;background:var(--border);margin:28px 0}
+
+/* ── BLOCKS ── */
+.callout{
+  background:var(--bg2);border-radius:var(--radius);padding:12px 16px;
+  margin:12px 0;display:flex;gap:10px;align-items:flex-start;
+  border:1px solid var(--border);
+}
+.callout .ci{font-size:16px;flex-shrink:0;margin-top:1px}
+.callout .ct{font-size:14px;line-height:1.6;color:var(--text)}
+.callout.purple{background:var(--purple-bg);border-color:#C5BFF5}
+.callout.green{background:var(--green-bg);border-color:#8FD8C0}
+.callout.amber{background:var(--amber-bg);border-color:#F0C870}
+.callout.red{background:var(--red-bg);border-color:#F5A88A}
+
+h2.block{font-size:20px;font-weight:600;color:var(--text);margin:28px 0 10px;letter-spacing:-.01em}
+h3.block{font-size:16px;font-weight:600;color:var(--text);margin:20px 0 8px}
+p.block{font-size:14px;line-height:1.7;color:var(--text);margin:6px 0}
+
+.checklist{list-style:none;margin:4px 0}
+.checklist li{
+  display:flex;align-items:flex-start;gap:10px;padding:3px 0;
+  font-size:14px;line-height:1.5;color:var(--text);cursor:pointer;
+}
+.checklist li:hover .check-box{border-color:var(--purple)}
+.check-box{
+  width:16px;height:16px;border:1.5px solid var(--border);border-radius:3px;
+  flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;
+  transition:all .1s;background:var(--bg);
+}
+.check-box.checked{background:var(--purple);border-color:var(--purple)}
+.check-box.checked::after{content:'✓';color:white;font-size:10px;font-weight:700}
+.check-label{flex:1}
+.check-label.done{text-decoration:line-through;color:var(--text3)}
+
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:3px;font-size:11px;font-weight:600;
+  letter-spacing:.02em;margin-right:4px;
+}
+.badge.purple{background:var(--purple-bg);color:#3C2FA0}
+.badge.green{background:var(--green-bg);color:#0D5C3E}
+.badge.amber{background:var(--amber-bg);color:#7A4A0A}
+.badge.red{background:var(--red-bg);color:#7A2510}
+.badge.blue{background:var(--blue-bg);color:#0A3E7A}
+.badge.gray{background:var(--gray-bg);color:#3A3A37}
+
+table.notion{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+table.notion th{
+  background:var(--bg2);font-weight:600;text-align:left;
+  padding:8px 12px;border:1px solid var(--border);color:var(--text2);
+  font-size:12px;letter-spacing:.02em;
+}
+table.notion td{padding:8px 12px;border:1px solid var(--border);color:var(--text);vertical-align:top}
+table.notion tr:hover td{background:var(--bg2)}
+
+.phase-bar{display:flex;gap:3px;margin:16px 0;border-radius:6px;overflow:hidden;height:32px}
+.phase-seg{
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:600;color:white;padding:0 12px;
+  white-space:nowrap;overflow:hidden;
+}
+.ps1{background:var(--purple);flex:3}
+.ps2{background:var(--green);flex:2}
+.ps3{background:var(--amber);flex:4}
+.ps4{background:var(--red);flex:2}
+
+.milestone-grid{display:flex;flex-direction:column;gap:0;margin:16px 0;position:relative}
+.milestone-grid::before{
+  content:'';position:absolute;left:68px;top:20px;bottom:20px;
+  width:2px;background:var(--border);z-index:0;
+}
+.ms-row{display:flex;align-items:flex-start;gap:16px;padding:8px 0;position:relative;z-index:1}
+.ms-dot-wrap{width:60px;display:flex;flex-direction:column;align-items:flex-end;gap:0;flex-shrink:0}
+.ms-jalon{
+  font-size:11px;font-weight:700;color:white;
+  padding:3px 7px;border-radius:3px;text-align:center;
+  font-family:'JetBrains Mono',monospace;white-space:nowrap;
+}
+.ms-connector{width:24px;height:2px;background:var(--border);margin-top:10px;flex-shrink:0}
+.ms-card{
+  flex:1;background:var(--bg);border:1px solid var(--border);
+  border-radius:6px;padding:12px 16px;cursor:pointer;
+  transition:border-color .15s,box-shadow .15s;
+}
+.ms-card:hover{border-color:#C5BFF5;box-shadow:0 2px 8px rgba(110,93,232,.08)}
+.ms-card.key{border-left:3px solid var(--purple)}
+.ms-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+.ms-period{font-size:12px;color:var(--text3);margin-bottom:8px}
+.ms-tasks{display:flex;flex-wrap:wrap;gap:4px}
+
+.code-block{
+  background:var(--sidebar);color:#9EFFA0;
+  border-radius:6px;padding:14px 16px;margin:12px 0;
+  font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;
+  white-space:pre;overflow-x:auto;
+}
+
+.numbered{counter-reset:step;list-style:none;margin:8px 0}
+.numbered li{
+  display:flex;gap:12px;padding:4px 0;font-size:14px;line-height:1.6;
+  counter-increment:step;
+}
+.numbered li::before{
+  content:counter(step);
+  width:22px;height:22px;border-radius:50%;background:var(--bg3);
+  color:var(--text2);font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;
+}
+
+/* ── INDEX PAGE ── */
+.index-phases{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}
+.phase-card{
+  border-radius:8px;padding:16px;cursor:pointer;
+  transition:transform .1s,box-shadow .1s;
+}
+.phase-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.phase-card.p{background:var(--purple-bg);border:1px solid #C5BFF5}
+.phase-card.g{background:var(--green-bg);border:1px solid #8FD8C0}
+.phase-card.a{background:var(--amber-bg);border:1px solid #F0C870}
+.phase-card.r{background:var(--red-bg);border:1px solid #F5A88A}
+.pc-icon{font-size:22px;margin-bottom:6px}
+.pc-title{font-size:13px;font-weight:700;margin-bottom:2px}
+.pc-period{font-size:11px;opacity:.7}
+.phase-card.p .pc-title{color:#3C2FA0}
+.phase-card.g .pc-title{color:#0D5C3E}
+.phase-card.a .pc-title{color:#7A4A0A}
+.phase-card.r .pc-title{color:#7A2510}
+
+.page-links{display:flex;flex-direction:column;gap:4px;margin:12px 0}
+.page-link{
+  display:flex;align-items:center;gap:12px;padding:8px 12px;
+  border-radius:var(--radius);border:1px solid var(--border);
+  cursor:pointer;transition:background .1s,border-color .1s;
+  text-decoration:none;color:var(--text);
+}
+.page-link:hover{background:var(--bg2);border-color:#C5BFF5}
+.page-link .pl-icon{font-size:16px;width:24px;text-align:center}
+.page-link .pl-title{font-size:14px;font-weight:500;flex:1}
+.page-link .pl-jalon{font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text3)}
+.page-link .pl-arrow{color:var(--text3);font-size:12px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .sidebar{width:200px}
+  .content{padding:32px 40px 64px}
+}
+@media(max-width:680px){
+  .sidebar{display:none}
+  .content{padding:24px 20px 48px}
+  .index-phases{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="ws-name">
+      <div class="ws-dot">🎮</div>
+      Arma Staff
+    </div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-item active" onclick="showPage('index')">
+      <span class="icon">🗺️</span>
+      <span class="label">Roadmap — Vue d'ensemble</span>
+    </div>
+
+    <div class="nav-section">Pré-lancement</div>
+    <div class="nav-item" onclick="showPage('j14')">
+      <span class="icon">📋</span>
+      <span class="label">J-14 · Audit des mods</span>
+      <span class="dot dot-p"></span>
+    </div>
+    <div class="nav-item" onclick="showPage('j7')">
+      <span class="icon">🎮</span>
+      <span class="label">J-7 · Tests internes</span>
+      <span class="dot dot-p"></span>
+    </div>
+
+    <div class="nav-section">Lancement</div>
+    <div class="nav-item" onclick="showPage('j0')">
+      <span class="icon">⭐</span>
+      <span class="label">J0 · Ouverture publique</span>
+      <span class="dot dot-g"></span>
+    </div>
+    <div class="nav-item" onclick="showPage('j14plus')">
+      <span class="icon">⚖️</span>
+      <span class="label">J+14 · Bilan Go/No-go</span>
+      <span class="dot dot-g"></span>
+    </div>
+
+    <div class="nav-section">Intégration</div>
+    <div class="nav-item" onclick="showPage('j21')">
+      <span class="icon">🧪</span>
+      <span class="label">J+21 · Serveur test Lot 1</span>
+      <span class="dot dot-a"></span>
+    </div>
+    <div class="nav-item" onclick="showPage('j30')">
+      <span class="icon">🚀</span>
+      <span class="label">J+30 · Vague 1 déploiement</span>
+      <span class="dot dot-a"></span>
+    </div>
+
+    <div class="nav-section">Long terme</div>
+    <div class="nav-item" onclick="showPage('j60')">
+      <span class="icon">♻️</span>
+      <span class="label">J+60 · Rythme long terme</span>
+      <span class="dot dot-r"></span>
+    </div>
+  </div>
+  <div class="sidebar-footer">Staff — Confidentiel</div>
+</nav>
+
+<!-- ── MAIN ── -->
+<main class="main">
+  <div class="topbar">
+    <div class="breadcrumb" id="breadcrumb">
+      <span class="page">🎮 Arma Staff</span>
+      <span>›</span>
+      <span class="current">🗺️ Roadmap</span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn" onclick="window.print()">Imprimer</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ INDEX ══ -->
+    <div class="page active" id="page-index">
+      <div class="page-icon">🗺️</div>
+      <div class="page-title">Roadmap — Serveur Arma Reforger moddé</div>
+      <div class="page-subtitle">Document de pilotage staff · Confidentiel</div>
+
+      <div class="callout purple">
+        <span class="ci">🎯</span>
+        <div class="ct"><strong>Objectif :</strong> Ouvrir le serveur avec un package de mods stable et connu, tester progressivement les mods capricieux, et déployer les nouveautés par vagues validées pour maintenir l'intérêt des joueurs sur la durée.</div>
+      </div>
+
+      <div class="page-divider"></div>
+      <h2 class="block">📊 Vue d'ensemble des phases</h2>
+
+      <div class="phase-bar">
+        <div class="phase-seg ps1">🟣 Pré-lancement · J-14→J-1</div>
+        <div class="phase-seg ps2">🟢 Lancement · J0→J+14</div>
+        <div class="phase-seg ps3">🟡 Intégration progressive · J+15→J+60</div>
+        <div class="phase-seg ps4">🔴 Long terme</div>
+      </div>
+
+      <div class="index-phases">
+        <div class="phase-card p" onclick="showPage('j14')">
+          <div class="pc-icon">🟣</div>
+          <div class="pc-title">Pré-lancement</div>
+          <div class="pc-period">J-14 → J-1</div>
+        </div>
+        <div class="phase-card g" onclick="showPage('j0')">
+          <div class="pc-icon">🟢</div>
+          <div class="pc-title">Lancement</div>
+          <div class="pc-period">J0 → J+14</div>
+        </div>
+        <div class="phase-card a" onclick="showPage('j21')">
+          <div class="pc-icon">🟡</div>
+          <div class="pc-title">Intégration</div>
+          <div class="pc-period">J+15 → J+60</div>
+        </div>
+        <div class="phase-card r" onclick="showPage('j60')">
+          <div class="pc-icon">🔴</div>
+          <div class="pc-title">Long terme</div>
+          <div class="pc-period">J+60 →</div>
+        </div>
+      </div>
+
+      <div class="page-divider"></div>
+      <h2 class="block">🗓️ Frise chronologique</h2>
+
+      <div class="milestone-grid">
+        <div class="ms-row">
+          <div class="ms-dot-wrap"><div class="ms-jalon" style="background:var(--purple)">J-14</div></div>
+          <div class="ms-connector"></div>
+          <div class="ms-card" onclick="showPage('j14')">
+            <div class="ms-title">📋 Audit du catalogue de mods</div>
+            <div class="ms-period">Semaine −2 · Début préparation</div>
+            <div class="ms-tasks">
+              <span class="badge gray">Revue</span>
+              <span class="badge green">Technique</span>
+            </div>
+          </div>
+        </div>
+        <div class="ms-row">
+          <div class="ms-dot-wrap"><div class="ms-jalon" style="background:#7B72D4">J-7</div></div>
+          <div class="ms-connector"></div>
+          <div class="ms-card" onclick="showPage('j7')">
+            <div class="ms-title">🎮 Tests internes staff</div>
+            <div class="ms-period">Semaine −1 · Validation finale</div>
+            <div class="ms-tasks">
+              <span class="badge purple">Test</span>
+              <span class="badge green">Technique</span>
+              <span class="badge red">Comms</span>
+            </div>
+          </div>
+        </div>
+        <div class="ms-row">
+          <div class="ms-dot-wrap"><div class="ms-jalon" style="background:var(--green)">J0 ⭐</div></div>
+          <div class="ms-connector"></div>
+          <div class="ms-card key" onclick="showPage('j0')">
+            <div class="ms-title">⭐ Ouverture publique</div>
+            <div class="ms-period">Jour J · Présence staff obligatoire</div>
+            <div class="ms-tasks">
+              <span class="badge amber">Monitoring</span>
+              <span class="badge red">Comms</span>
+              <span class="badge gray">Revue</span>
+            </div>
+          </div>
+        </div>
+        <div class="ms-row">
+          <div class="ms-dot-wrap"><div class="ms-jalon" style="background:#4DB896">J+7</div></div>
+          <div class="ms-connector"></div>
+          <div class="ms-card" onclick="showPage('j0')">
+            <div class="ms-title">🔧 Stabilisation semaine 1</div>
+            <div class="ms-period">Corrections · Pas de nouveautés</div>
+            <div class="ms-tasks">
+              <span class="badge green">Technique</span>
+              <span class="badge amber">Monitoring</span>
+            </div>
+          </div>
+        </div>
+        <div class="ms-row">
+          <div class="ms-dot-wrap"><div class="ms-jalon" style="background:var(--amber)">J+14 ⭐</div></div>
+          <div class="ms-connector"></div>
+          <div class="ms-card key" onclick="showPage('j14plus')">
+            <div class="ms-title">⚖️ Bilan de stabilité — Go / No-go</div>
+            <div class="ms-period">Point de décision · Vote staff</div>
+            <div class="ms-tasks">
+              <span class="badge gray">Revue</span>
+              <span class="badge amber">Monitoring</span>
+            </div>
+          </div>
+        </div>
+        <div class="ms-row">
+          <div class="ms-dot-wrap"><div class="ms-jalon" style="background:#D4952A">J+21</div></div>
+          <div class="ms-connector"></div>
+          <div class="ms-card" onclick="showPage('j21')">
+            <div class="ms-title">🧪 Serveur de test — Lot 1</div>
+            <div class="ms-period">Semaines 3–4 · Validation mods</div>
+            <div class="ms-tasks">
+              <span class="badge purple">Test</span>
+              <span class="badge gray">Revue</span>
+            </div>
+          </div>
+        </div>
+        <div class="ms-row">
+          <div class="ms-dot-wrap"><div class="ms-jalon" style="background:#C4871E">J+30</div></div>
+          <div class="ms-connector"></div>
+          <div class="ms-card" onclick="showPage('j30')">
+            <div class="ms-title">🚀 Vague 1 — Déploiement</div>
+            <div class="ms-period">Mois 1 · Premiers nouveaux mods</div>
+            <div class="ms-tasks">
+              <span class="badge blue">Déploiement</span>
+              <span class="badge red">Comms</span>
+              <span class="badge amber">Monitoring</span>
+            </div>
+          </div>
+        </div>
+        <div class="ms-row">
+          <div class="ms-dot-wrap"><div class="ms-jalon" style="background:var(--red)">J+60 ⭐</div></div>
+          <div class="ms-connector"></div>
+          <div class="ms-card key" onclick="showPage('j60')">
+            <div class="ms-title">♻️ Rythme long terme établi</div>
+            <div class="ms-period">Mois 2+ · Cycle mensuel</div>
+            <div class="ms-tasks">
+              <span class="badge blue">Déploiement</span>
+              <span class="badge gray">Revue</span>
+              <span class="badge red">Comms</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-divider"></div>
+      <h2 class="block">📁 Documents détaillés</h2>
+      <div class="page-links">
+        <div class="page-link" onclick="showPage('j14')"><span class="pl-icon">📋</span><span class="pl-title">J-14 · Audit du catalogue de mods</span><span class="pl-jalon">J-14</span><span class="pl-arrow">›</span></div>
+        <div class="page-link" onclick="showPage('j7')"><span class="pl-icon">🎮</span><span class="pl-title">J-7 · Tests internes staff</span><span class="pl-jalon">J-7</span><span class="pl-arrow">›</span></div>
+        <div class="page-link" onclick="showPage('j0')"><span class="pl-icon">⭐</span><span class="pl-title">J0 · Ouverture publique</span><span class="pl-jalon">J0</span><span class="pl-arrow">›</span></div>
+        <div class="page-link" onclick="showPage('j14plus')"><span class="pl-icon">⚖️</span><span class="pl-title">J+14 · Bilan de stabilité — Go / No-go</span><span class="pl-jalon">J+14</span><span class="pl-arrow">›</span></div>
+        <div class="page-link" onclick="showPage('j21')"><span class="pl-icon">🧪</span><span class="pl-title">J+21 · Serveur de test — Lot 1</span><span class="pl-jalon">J+21</span><span class="pl-arrow">›</span></div>
+        <div class="page-link" onclick="showPage('j30')"><span class="pl-icon">🚀</span><span class="pl-title">J+30 · Vague 1 — Déploiement</span><span class="pl-jalon">J+30</span><span class="pl-arrow">›</span></div>
+        <div class="page-link" onclick="showPage('j60')"><span class="pl-icon">♻️</span><span class="pl-title">J+60 · Rythme long terme</span><span class="pl-jalon">J+60</span><span class="pl-arrow">›</span></div>
+      </div>
+
+      <div class="page-divider"></div>
+      <h2 class="block">📌 Règles de fonctionnement</h2>
+      <ul class="numbered">
+        <li>Aucun mod en production sans validation préalable sur le serveur de test.</li>
+        <li>Chaque déploiement est suivi de 3 à 5 jours de surveillance intensifiée.</li>
+        <li>Le passage d'une phase à l'autre est soumis à un vote staff (jalons Go/No-go).</li>
+        <li>Les mods abandonnés ou instables sont archivés lors de la revue mensuelle.</li>
+        <li>La communauté propose, le staff valide — rythme cible : 1 vague/mois.</li>
+      </ul>
+    </div>
+
+    <!-- ══ J-14 ══ -->
+    <div class="page" id="page-j14">
+      <div class="page-icon">📋</div>
+      <div class="page-title">J-14 · Audit du catalogue de mods</div>
+      <div class="page-subtitle">Phase : Pré-lancement · Semaine −2 · Responsables : Toute l'équipe staff</div>
+      <div class="callout purple"><span class="ci">🎯</span><div class="ct"><strong>Objectif :</strong> Constituer un package de base solide pour le lancement. Identifier clairement quels mods sont prêts pour la production et lesquels doivent passer par le serveur de test.</div></div>
+      <div class="page-divider"></div>
+      <h2 class="block">✅ Tâches</h2>
+      <h3 class="block"><span class="badge green">Technique</span></h3>
+      <ul class="checklist" id="tasks-j14-tech">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Lister l'intégralité des mods du catalogue dans un tableau partagé</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Configurer le serveur de test sur une instance séparée (port distinct, liste de mods indépendante)</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Vérifier que les mods du package de base se chargent sans erreur sur le serveur de test</span></li>
+      </ul>
+      <h3 class="block"><span class="badge gray">Revue</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Remplir la grille de classification pour chaque mod (voir ci-dessous)</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Geler la liste du package de base — aucune modification après ce jalon</span></li>
+      </ul>
+      <div class="page-divider"></div>
+      <h2 class="block">📊 Grille de classification des mods</h2>
+      <p class="block">Notez chaque mod de 0 à 2 sur chacun des 5 critères :</p>
+      <table class="notion">
+        <tr><th>Critère</th><th>0</th><th>1</th><th>2</th></tr>
+        <tr><td>Dernière MAJ</td><td>> 6 mois</td><td>3–6 mois</td><td>< 3 mois</td></tr>
+        <tr><td>Popularité Workshop</td><td>< 100 abonnés</td><td>100–1 000</td><td>> 1 000</td></tr>
+        <tr><td>Conflits connus</td><td>Oui, graves</td><td>Mineurs</td><td>Aucun</td></tr>
+        <tr><td>Complexité technique</td><td>Haute (core/réseau)</td><td>Moyenne</td><td>Faible</td></tr>
+        <tr><td>Suivi auteur</td><td>Inactif</td><td>Lent</td><td>Réactif</td></tr>
+      </table>
+      <div class="callout">
+        <span class="ci">💡</span>
+        <div class="ct"><strong>Score 8–10 → ✅ Stable</strong> · <strong>Score 5–7 → ⚠️ À tester</strong> · <strong>Score 0–4 → ❌ À risque</strong></div>
+      </div>
+      <div class="page-divider"></div>
+      <h2 class="block">✔️ Critères de validation du jalon</h2>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Tous les mods du catalogue ont été classés</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Le package de base est gelé et validé par au moins 2 membres du staff</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Le serveur de test est opérationnel</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">La liste des mods "à tester" et "à risque" est documentée</span></li>
+      </ul>
+      <div class="page-divider"></div>
+      <h2 class="block">📝 Notes / Décisions</h2>
+      <p class="block" style="color:var(--text3);font-style:italic">Cliquez pour ajouter une note...</p>
+    </div>
+
+    <!-- ══ J-7 ══ -->
+    <div class="page" id="page-j7">
+      <div class="page-icon">🎮</div>
+      <div class="page-title">J-7 · Tests internes staff</div>
+      <div class="page-subtitle">Phase : Pré-lancement · Semaine −1 · Responsables : Staff joueurs + admin technique</div>
+      <div class="callout purple"><span class="ci">🎯</span><div class="ct"><strong>Objectif :</strong> Valider le package de base en conditions réelles avec l'équipe staff. Corriger les derniers bugs bloquants. Préparer la communication d'ouverture.</div></div>
+      <div class="page-divider"></div>
+      <h2 class="block">✅ Tâches</h2>
+      <h3 class="block"><span class="badge purple">Test interne</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Organiser au minimum 2 sessions de jeu complètes sur le serveur de test</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Tester des scénarios variés : connexion/déconnexion, longue session, redémarrage serveur</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Documenter tous les bugs observés dans un rapport partagé</span></li>
+      </ul>
+      <h3 class="block"><span class="badge green">Technique</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Trier les bugs remontés : bloquants / mineurs / cosmétiques</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Corriger tous les bugs bloquants avant J0</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Effectuer un dernier test de charge (plusieurs connexions simultanées)</span></li>
+      </ul>
+      <h3 class="block"><span class="badge red">Comms</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Rédiger et publier l'annonce de lancement (Discord, forum)</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Préciser la date et l'heure d'ouverture</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Présenter brièvement le gamemode et le package de mods aux joueurs</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Ouvrir un canal dédié aux retours et bugs pour le lancement</span></li>
+      </ul>
+      <div class="page-divider"></div>
+      <h2 class="block">✔️ Critères de validation du jalon</h2>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Au moins 2 sessions de test réalisées avec compte-rendu</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Zéro bug bloquant restant à J0</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">L'annonce d'ouverture est publiée au moins 48h avant J0</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Le canal de retours joueurs est prêt</span></li>
+      </ul>
+    </div>
+
+    <!-- ══ J0 ══ -->
+    <div class="page" id="page-j0">
+      <div class="page-icon">⭐</div>
+      <div class="page-title">J0 · Ouverture publique</div>
+      <div class="page-subtitle">Phase : Lancement · Jour J · Présence staff obligatoire</div>
+      <div class="callout green"><span class="ci">🎯</span><div class="ct"><strong>Objectif :</strong> Ouvrir le serveur dans les meilleures conditions. Détecter immédiatement tout problème critique et rassurer la communauté par une présence staff visible.</div></div>
+      <div class="page-divider"></div>
+      <h2 class="block">✅ Tâches</h2>
+      <h3 class="block"><span class="badge amber">Monitoring</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Surveiller les logs serveur en continu les 3 premières heures</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Vérifier les performances : CPU, RAM, latence, taux de tick</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Identifier tout crash ou déconnexion anormale (noter heure et contexte)</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Surveiller les conflits de mods visibles en jeu</span></li>
+      </ul>
+      <h3 class="block"><span class="badge red">Comms</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Être présent sur Discord pour répondre aux premières questions joueurs</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Confirmer publiquement que le serveur est ouvert et opérationnel</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Épingler les instructions de rapport de bugs dans le canal dédié</span></li>
+      </ul>
+      <h3 class="block"><span class="badge gray">Revue</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Tenir un debrief staff en fin de soirée J0</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Mettre à jour le tableau de suivi des bugs</span></li>
+      </ul>
+      <div class="page-divider"></div>
+      <h2 class="block">🚨 Procédure en cas de crash critique</h2>
+      <ul class="numbered">
+        <li>Notifier immédiatement le staff sur le canal interne</li>
+        <li>Communiquer aux joueurs (message Discord) : contexte + ETA de résolution</li>
+        <li>Redémarrer le serveur si nécessaire</li>
+        <li>Identifier le mod responsable dans les logs</li>
+        <li>Désactiver temporairement le mod incriminé si pas de correction rapide possible</li>
+        <li>Documenter l'incident</li>
+      </ul>
+      <div class="page-divider"></div>
+      <h2 class="block">✔️ Critères de validation</h2>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Le serveur est resté stable pendant au moins 3h consécutives</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Le debrief J0 a eu lieu</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Les bugs critiques sont documentés et assignés</span></li>
+      </ul>
+    </div>
+
+    <!-- ══ J+14 ══ -->
+    <div class="page" id="page-j14plus">
+      <div class="page-icon">⚖️</div>
+      <div class="page-title">J+14 · Bilan de stabilité — Go / No-go</div>
+      <div class="page-subtitle">Phase : Fin lancement · Décision collective · Toute l'équipe staff</div>
+      <div class="callout amber"><span class="ci">🎯</span><div class="ct"><strong>Objectif :</strong> Évaluer objectivement la stabilité du serveur après 2 semaines de live. Décider si le serveur est prêt pour accueillir de nouveaux mods.</div></div>
+      <div class="page-divider"></div>
+      <h2 class="block">✅ Tâches</h2>
+      <h3 class="block"><span class="badge amber">Monitoring</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Compiler le nombre de crashes sur la période J0→J+14</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Calculer le taux de disponibilité du serveur (uptime)</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Analyser les logs : erreurs récurrentes liées à un mod spécifique ?</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Rassembler les retours joueurs du canal dédié</span></li>
+      </ul>
+      <h3 class="block"><span class="badge gray">Revue</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Rédiger la synthèse de stabilité</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Présenter la synthèse à l'ensemble du staff</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Voter collectivement : Go ou No-go</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Documenter la décision et la justification</span></li>
+      </ul>
+      <div class="page-divider"></div>
+      <h2 class="block">📊 Grille de bilan de stabilité</h2>
+      <table class="notion">
+        <tr><th>Indicateur</th><th>Résultat</th><th>Appréciation</th></tr>
+        <tr><td>Nombre de crashes en 14 jours</td><td></td><td>✅ / ⚠️ / ❌</td></tr>
+        <tr><td>Uptime serveur</td><td></td><td>✅ / ⚠️ / ❌</td></tr>
+        <tr><td>Bugs bloquants restants</td><td></td><td>✅ / ⚠️ / ❌</td></tr>
+        <tr><td>Retours joueurs (globaux)</td><td></td><td>✅ / ⚠️ / ❌</td></tr>
+        <tr><td>Mod(s) instable(s) identifié(s)</td><td></td><td>✅ / ⚠️ / ❌</td></tr>
+      </table>
+      <div class="page-divider"></div>
+      <h2 class="block">🔀 Résultat du vote</h2>
+      <div class="callout green"><span class="ci">✅</span><div class="ct"><strong>GO</strong> → Passage en Phase 3 · Lancement du serveur de test Lot 1 (→ J+21)</div></div>
+      <div class="callout red"><span class="ci">❌</span><div class="ct"><strong>NO-GO</strong> → Prolongation Phase 2 de 1 semaine · Nouveau bilan à J+21</div></div>
+      <div class="page-divider"></div>
+      <h2 class="block">✔️ Critères pour un GO</h2>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Moins de 3 crashes non résolus sur la période</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Uptime > 95%</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Aucun bug bloquant en suspens</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Ressenti joueurs globalement positif</span></li>
+      </ul>
+    </div>
+
+    <!-- ══ J+21 ══ -->
+    <div class="page" id="page-j21">
+      <div class="page-icon">🧪</div>
+      <div class="page-title">J+21 · Serveur de test — Lot 1</div>
+      <div class="page-subtitle">Phase : Intégration progressive · Semaines 3–4 · Admin technique + staff volontaires</div>
+      <div class="callout amber"><span class="ci">🎯</span><div class="ct"><strong>Objectif :</strong> Valider les premiers mods classés "à tester". Tester leur comportement seuls puis combinés au package de production, avant tout déploiement en live.</div></div>
+      <div class="page-divider"></div>
+      <h2 class="block">✅ Tâches</h2>
+      <h3 class="block"><span class="badge purple">Test interne</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Sélectionner les mods prioritaires à tester dans ce lot</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Tester chaque mod <strong>seul</strong> : chargement, stabilité, comportement de base</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Tester chaque mod <strong>combiné</strong> au package de production complet</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Documenter les interactions entre mods (conflits, perfs, comportements inattendus)</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Organiser au moins 1 session jouée avec le staff volontaire par mod retenu</span></li>
+      </ul>
+      <h3 class="block"><span class="badge gray">Revue</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Remplir la grille de validation pour chaque mod testé</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Classer les mods en : Validé / À retravailler / Écarté</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Préparer la liste des mods retenus pour la Vague 1 (→ J+30)</span></li>
+      </ul>
+      <div class="page-divider"></div>
+      <h2 class="block">📦 Liste des mods du Lot 1</h2>
+      <table class="notion">
+        <tr><th>Mod</th><th>Score audit</th><th>Priorité</th><th>Statut test</th></tr>
+        <tr><td><em style="color:var(--text3)">(à remplir)</em></td><td></td><td>Haute / Moyenne / Basse</td><td>En attente / En cours / Validé / Écarté</td></tr>
+      </table>
+      <div class="page-divider"></div>
+      <h2 class="block">📊 Grille de validation par mod</h2>
+      <table class="notion">
+        <tr><th>Critère</th><th>Résultat</th></tr>
+        <tr><td>Chargement sans erreur</td><td>✅ / ❌</td></tr>
+        <tr><td>Stable seul (session 30 min)</td><td>✅ / ❌</td></tr>
+        <tr><td>Compatible avec le package de prod</td><td>✅ / ❌</td></tr>
+        <tr><td>Pas d'impact négatif sur les perfs</td><td>✅ / ❌</td></tr>
+        <tr><td>Auteur toujours actif</td><td>✅ / ❌</td></tr>
+        <tr><td>Intérêt gameplay confirmé par le staff</td><td>✅ / ❌</td></tr>
+      </table>
+      <div class="callout"><span class="ci">⚠️</span><div class="ct"><strong>4 critères ou moins validés → Écarté ou reporté au Lot 2</strong></div></div>
+    </div>
+
+    <!-- ══ J+30 ══ -->
+    <div class="page" id="page-j30">
+      <div class="page-icon">🚀</div>
+      <div class="page-title">J+30 · Vague 1 — Déploiement</div>
+      <div class="page-subtitle">Phase : Intégration progressive · Mois 1 · Admin technique + Staff communication</div>
+      <div class="callout amber"><span class="ci">🎯</span><div class="ct"><strong>Objectif :</strong> Déployer en production les mods validés lors du Lot 1. Communiquer la nouveauté à la communauté. Surveiller la stabilité de près dans les jours qui suivent.</div></div>
+      <div class="page-divider"></div>
+      <h2 class="block">✅ Tâches</h2>
+      <h3 class="block"><span class="badge blue">Déploiement</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Ajouter les mods validés à la liste de production du serveur</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Effectuer un redémarrage serveur propre avec le nouveau package</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Vérifier le chargement complet sans erreur au premier démarrage</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Tester une connexion rapide en jeu avant l'annonce publique</span></li>
+      </ul>
+      <h3 class="block"><span class="badge red">Comms</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Rédiger le changelog de la Vague 1</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Publier l'annonce sur Discord avec le changelog</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Épingler le message dans le canal approprié</span></li>
+      </ul>
+      <h3 class="block"><span class="badge amber">Monitoring</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Surveillance intensifiée pendant les 3 à 5 premiers jours post-déploiement</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Logs analysés quotidiennement sur cette période</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Canal de retours bugs actif et surveillé</span></li>
+      </ul>
+      <div class="page-divider"></div>
+      <h2 class="block">📋 Changelog Vague 1</h2>
+      <table class="notion">
+        <tr><th>Mod ajouté</th><th>Description courte</th><th>Catégorie</th></tr>
+        <tr><td><em style="color:var(--text3)">(à remplir)</em></td><td></td><td></td></tr>
+      </table>
+      <div class="page-divider"></div>
+      <h2 class="block">🔄 Procédure de rollback si instabilité</h2>
+      <ul class="numbered">
+        <li>Identifier le mod responsable dans les logs</li>
+        <li>Informer le staff sur le canal interne</li>
+        <li>Retirer le mod du package et redémarrer le serveur</li>
+        <li>Communiquer aux joueurs (transparence)</li>
+        <li>Renvoyer le mod vers le serveur de test pour investigation</li>
+      </ul>
+    </div>
+
+    <!-- ══ J+60 ══ -->
+    <div class="page" id="page-j60">
+      <div class="page-icon">♻️</div>
+      <div class="page-title">J+60 · Rythme long terme</div>
+      <div class="page-subtitle">Phase : Long terme · À partir du 2e mois · Cycle mensuel récurrent</div>
+      <div class="callout red"><span class="ci">🎯</span><div class="ct"><strong>Objectif :</strong> Installer un cycle régulier test → validation → déploiement. Maintenir l'intérêt des joueurs dans la durée en proposant des nouveautés régulières.</div></div>
+      <div class="page-divider"></div>
+      <h2 class="block">🔁 Le cycle mensuel</h2>
+      <div class="code-block">Semaine 1 : Vote communauté sur les prochains mods
+Semaine 2 : Tests sur serveur de test (lot suivant)
+Semaine 3 : Validation + préparation du déploiement
+Semaine 4 : Déploiement + annonce + surveillance</div>
+      <div class="page-divider"></div>
+      <h2 class="block">✅ Tâches récurrentes chaque mois</h2>
+      <h3 class="block"><span class="badge blue">Déploiement</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Déployer la vague du mois (mods validés lors de la semaine de test)</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Annoncer la vague à l'avance (J-7 avant déploiement)</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Publier le changelog</span></li>
+      </ul>
+      <h3 class="block"><span class="badge gray">Revue mensuelle du package</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Vérifier le statut de chaque mod en production : toujours maintenu ? Mis à jour ?</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Identifier les mods abandonnés (> 3 mois sans MAJ, issues sans réponse)</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Proposer au staff le retrait ou remplacement des mods obsolètes</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Archiver les mods retirés avec une note explicative</span></li>
+      </ul>
+      <h3 class="block"><span class="badge red">Comms</span></h3>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Lancer le sondage communautaire en début de mois</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Annoncer les résultats du vote et ce qui sera testé ce mois-ci</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Communiquer sur le retrait d'un mod si nécessaire</span></li>
+      </ul>
+      <div class="page-divider"></div>
+      <h2 class="block">📊 Tableau de bord mensuel</h2>
+      <table class="notion">
+        <tr><th>Mois</th><th>Uptime</th><th>Crashes</th><th>Nouveaux mods</th><th>Mods retirés</th><th>Joueurs actifs</th><th>Ressenti</th></tr>
+        <tr><td>Mois 1</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>Mois 2</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>Mois 3</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      </table>
+      <div class="page-divider"></div>
+      <h2 class="block">✔️ Critères de bonne santé du serveur</h2>
+      <ul class="checklist">
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Uptime mensuel > 97%</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Moins de 2 incidents critiques par mois</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Au moins 1 nouveauté déployée tous les 4–6 semaines</span></li>
+        <li onclick="toggle(this)"><span class="check-box"></span><span class="check-label">Le package ne contient aucun mod sans MAJ depuis > 6 mois</span></li>
+      </ul>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+const pages = {
+  index:{title:'🗺️ Roadmap',breadcrumb:['🗺️ Roadmap']},
+  j14:{title:'J-14 · Audit des mods',breadcrumb:['🗺️ Roadmap','J-14']},
+  j7:{title:'J-7 · Tests internes',breadcrumb:['🗺️ Roadmap','J-7']},
+  j0:{title:'J0 · Ouverture publique',breadcrumb:['🗺️ Roadmap','J0 ⭐']},
+  j14plus:{title:'J+14 · Bilan Go/No-go',breadcrumb:['🗺️ Roadmap','J+14 ⭐']},
+  j21:{title:'J+21 · Serveur test Lot 1',breadcrumb:['🗺️ Roadmap','J+21']},
+  j30:{title:'J+30 · Vague 1',breadcrumb:['🗺️ Roadmap','J+30']},
+  j60:{title:'J+60 · Long terme',breadcrumb:['🗺️ Roadmap','J+60 ⭐']},
+};
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.getAttribute('onclick')===`showPage('${id}')`) n.classList.add('active');
+  });
+  const info=pages[id];
+  const bc=document.getElementById('breadcrumb');
+  if(info.breadcrumb.length===1){
+    bc.innerHTML=`<span class="current">${info.breadcrumb[0]}</span>`;
+  } else {
+    bc.innerHTML=info.breadcrumb.map((b,i)=>
+      i<info.breadcrumb.length-1
+        ? `<span class="page">${b}</span><span>›</span>`
+        : `<span class="current">${b}</span>`
+    ).join('');
+  }
+  document.querySelector('.content').scrollTop=0;
+  document.title=info.title+' — Arma Reforger Staff';
+}
+
+function toggle(li){
+  const box=li.querySelector('.check-box');
+  const label=li.querySelector('.check-label');
+  box.classList.toggle('checked');
+  label.classList.toggle('done');
+}
+</script>
+</body>
+</html>
