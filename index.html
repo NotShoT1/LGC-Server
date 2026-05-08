@@ -918,14 +918,12 @@ import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, serverTim
 const firebaseConfig = {
   apiKey: "AIzaSyBk4qFd8H7llFiVeAwNCM1P8RGQO2Hinjs",
   authDomain: "lgc---server.firebaseapp.com",
-  databaseURL: "https://lgc---server-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "lgc---server",
   storageBucket: "lgc---server.firebasestorage.app",
   messagingSenderId: "590098829371",
   appId: "1:590098829371:web:6f801ca2548aad12780c1e",
-  measurementId: "G-VSTDNPDGSN"
+  databaseURL: "https://lgc---server-default-rtdb.europe-west1.firebasedatabase.app"
 };
-
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
