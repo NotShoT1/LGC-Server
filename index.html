@@ -934,7 +934,8 @@ const provider = new GoogleAuthProvider();
 const allowedEmails = [
   // Remplacez par les adresses e-mail staff autorisées.
   'admin@example.com',
-  'staff@example.com'
+  'staff@example.com',
+  'cohicclement@gmail.com'
 ];
 
 const loginBtn = document.getElementById('login-btn');
@@ -1005,12 +1006,19 @@ async function login(){
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-    await setDoc(doc(firestore, 'onlineUsers', user.uid), {
-      name: user.displayName,
-      email: user.email,
-      photo: user.photoURL,
-      lastActive: serverTimestamp()
-    });
+    
+    // Tenter d'écrire dans Firestore, mais ne pas bloquer si ça échoue
+    try {
+      await setDoc(doc(firestore, 'onlineUsers', user.uid), {
+        name: user.displayName,
+        email: user.email,
+        photo: user.photoURL,
+        lastActive: serverTimestamp()
+      });
+    } catch(fsError) {
+      console.warn('Impossible de sauvegarder la présence dans Firestore :', fsError.message);
+      // Ne pas bloquer la connexion si Firestore échoue
+    }
   } catch(error) {
     console.error(error);
     alert('Connexion Google échouée. Réessayez.');
