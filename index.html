@@ -930,6 +930,9 @@ const allowedEmails = [
 
 const loginBtn = document.getElementById('login-btn');
 const logoutBtn = document.getElementById('logout-btn');
+const usersRef = collection(firestore, 'onlineUsers');
+let checkboxUnsubscribe = null;
+let usersUnsubscribe = null;
 
 function setAuthMode(signedIn){
   loginBtn.classList.toggle('hidden', signedIn);
@@ -939,6 +942,42 @@ function setAuthMode(signedIn){
 function handleUnauthorized(){
   alert('Ce compte Google n’est pas autorisé à accéder à cet outil.');
   signOut(auth).catch(console.error);
+}
+
+function startRealtimeListeners(){
+  if(!checkboxUnsubscribe){
+    checkboxUnsubscribe = listenToCheckboxes();
+  }
+  if(!usersUnsubscribe){
+    usersUnsubscribe = onSnapshot(usersRef, (snapshot) => {
+      const users = [];
+      snapshot.forEach(doc => users.push(doc.data()));
+      console.log('Membres actifs :', users);
+
+      const usersEl = document.getElementById('users');
+      if(usersEl){
+        usersEl.innerHTML = users.map(u => `
+          <div style="display:flex;align-items:center;gap:10px">
+            <img src="${u.photo || ''}" width="30" style="border-radius:50%">
+            <span>${u.name || ''}</span>
+          </div>
+        `).join('');
+      }
+    }, (error) => {
+      console.error('Firestore onlineUsers error:', error);
+    });
+  }
+}
+
+function stopRealtimeListeners(){
+  if(checkboxUnsubscribe){
+    checkboxUnsubscribe();
+    checkboxUnsubscribe = null;
+  }
+  if(usersUnsubscribe){
+    usersUnsubscribe();
+    usersUnsubscribe = null;
+  }
 }
 
 async function login(){
@@ -967,6 +1006,7 @@ async function logout(){
     }
   }
   await signOut(auth);
+  stopRealtimeListeners();
 }
 
 // ── SYNC STATUS ──
@@ -1001,7 +1041,7 @@ function assignCheckboxIds(){
 // ── ÉCOUTER FIREBASE EN TEMPS RÉEL ──
 function listenToCheckboxes(){
   const checkRef = ref(db, 'checkboxes');
-  onValue(checkRef, (snapshot) => {
+  return onValue(checkRef, (snapshot) => {
     const data = snapshot.val() || {};
     document.querySelectorAll('.checklist li[data-cbid]').forEach(li => {
       const id = li.dataset.cbid;
@@ -1037,17 +1077,6 @@ window.toggle = function(li){
 
 const usersRef = collection(firestore, 'onlineUsers');
 
-onSnapshot(usersRef, (snapshot) => {
-  const users = [];
-  snapshot.forEach(doc => users.push(doc.data()));
-  console.log('Membres actifs :', users);
-
-  const usersEl = document.getElementById('users');
-  if(usersEl){
-    usersEl.innerHTML = users.map(u => `<p>${u.name || ''}</p>`).join('');
-  }
-});
-
 onAuthStateChanged(auth, (user) => {
   if(user){
     console.log('Connecté :', user.displayName);
@@ -1059,10 +1088,12 @@ onAuthStateChanged(auth, (user) => {
 
     setAuthMode(true);
     setSyncStatus('ok');
+    startRealtimeListeners();
   } else {
     console.log('Déconnecté');
     setAuthMode(false);
     setSyncStatus('signed-out');
+    stopRealtimeListeners();
   }
 });
 
