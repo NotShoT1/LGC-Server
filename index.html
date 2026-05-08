@@ -374,22 +374,13 @@ table.notion tr:hover td{background:var(--bg2)}
         <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:#ccc;display:inline-block"></span>
         <span id="sync-label">Connexion...</span>
       </span>
-      <span id="auth-area" class="auth-pill hidden">
-        <span id="user-summary"><img id="user-photo" class="login-avatar" src="" alt="Avatar"><span id="user-name"></span></span>
-        <button id="sign-out" type="button">Déconnexion</button>
-      </span>
+      <button class="btn" id="login-btn" onclick="login()">Se connecter avec Google</button>
+      <button class="btn hidden" id="logout-btn" onclick="logout()">Déconnexion</button>
       <button class="btn" onclick="window.print()">Imprimer</button>
     </div>
   </div>
 
-  <div id="login-screen" class="login-screen hidden">
-    <div class="login-panel">
-      <h1>Connexion requise</h1>
-      <p>Pour accéder à l'outil staff, connectez-vous avec votre compte Google autorisé.</p>
-      <button class="login-btn" id="sign-in">Se connecter avec Google</button>
-      <p style="margin-top:18px;color:var(--text3);font-size:12px;">Seuls les comptes staff autorisés peuvent voir et modifier les éléments.</p>
-    </div>
-  </div>
+  <div id="users" style="padding:12px 24px;color:var(--text2);font-size:13px;line-height:1.5;"></div>
 
   <div class="content">
 
@@ -910,8 +901,9 @@ Semaine 4 : Déploiement + annonce + surveillance</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // ── CONFIG FIREBASE ──
 const firebaseConfig = {
@@ -926,6 +918,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const firestore = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
@@ -935,32 +928,45 @@ const allowedEmails = [
   'staff@example.com'
 ];
 
-const loginScreen = document.getElementById('login-screen');
-const authArea = document.getElementById('auth-area');
-const userNameEl = document.getElementById('user-name');
-const userPhotoEl = document.getElementById('user-photo');
-const signOutButton = document.getElementById('sign-out');
+const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
 
-function showLogin(){
-  loginScreen.classList.remove('hidden');
-  authArea.classList.add('hidden');
-  document.body.classList.add('auth-required');
+function setAuthMode(signedIn){
+  loginBtn.classList.toggle('hidden', signedIn);
+  logoutBtn.classList.toggle('hidden', !signedIn);
 }
 
-function hideLogin(){
-  loginScreen.classList.add('hidden');
-  authArea.classList.remove('hidden');
-  document.body.classList.remove('auth-required');
-}
-
-function showApp(){
-  hideLogin();
-}
-
-function handleUnauthorized(user){
+function handleUnauthorized(){
   alert('Ce compte Google n’est pas autorisé à accéder à cet outil.');
   signOut(auth).catch(console.error);
-  showLogin();
+}
+
+async function login(){
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    await setDoc(doc(firestore, 'onlineUsers', user.uid), {
+      name: user.displayName,
+      email: user.email,
+      photo: user.photoURL,
+      lastActive: serverTimestamp()
+    });
+  } catch(error) {
+    console.error(error);
+    alert('Connexion Google échouée. Réessayez.');
+  }
+}
+
+async function logout(){
+  const user = auth.currentUser;
+  if(user){
+    try {
+      await deleteDoc(doc(firestore, 'onlineUsers', user.uid));
+    } catch(error){
+      console.warn('Impossible de supprimer l’utilisateur en ligne :', error);
+    }
+  }
+  await signOut(auth);
 }
 
 // ── SYNC STATUS ──
@@ -1029,42 +1035,33 @@ window.toggle = function(li){
     .catch(() => setSyncStatus('offline'));
 };
 
-function signInGoogle(){
-  signInWithPopup(auth, provider)
-    .catch((error) => {
-      console.error(error);
-      alert('Connexion Google échouée. Réessayez.');
-    });
-}
+const usersRef = collection(firestore, 'onlineUsers');
 
-function signOutGoogle(){
-  signOut(auth).then(() => {
-    setSyncStatus('signed-out');
-    showLogin();
-  }).catch((error) => {
-    console.error(error);
-  });
-}
+onSnapshot(usersRef, (snapshot) => {
+  const users = [];
+  snapshot.forEach(doc => users.push(doc.data()));
+  console.log('Membres actifs :', users);
 
-signOutButton.addEventListener('click', signOutGoogle);
-
-document.getElementById('sign-in').addEventListener('click', signInGoogle);
+  const usersEl = document.getElementById('users');
+  if(usersEl){
+    usersEl.innerHTML = users.map(u => `<p>${u.name || ''}</p>`).join('');
+  }
+});
 
 onAuthStateChanged(auth, (user) => {
   if(user){
+    console.log('Connecté :', user.displayName);
     const email = user.email || '';
     if(!allowedEmails.includes(email)){
-      handleUnauthorized(user);
+      handleUnauthorized();
       return;
     }
 
-    userNameEl.textContent = user.displayName || email;
-    userPhotoEl.src = user.photoURL || 'https://www.gravatar.com/avatar/?d=mp&f=y';
-    userPhotoEl.alt = user.displayName ? `${user.displayName} avatar` : 'Avatar';
-    showApp();
+    setAuthMode(true);
     setSyncStatus('ok');
   } else {
-    showLogin();
+    console.log('Déconnecté');
+    setAuthMode(false);
     setSyncStatus('signed-out');
   }
 });
