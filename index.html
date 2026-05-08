@@ -383,10 +383,6 @@ table.notion tr:hover td{background:var(--bg2)}
         <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:#ccc;display:inline-block"></span>
         <span id="sync-label">Connexion...</span>
       </span>
-      <span id="current-user-summary" class="auth-pill hidden">
-        <img id="user-photo" class="login-avatar" src="" alt="Avatar">
-        <span id="user-name"></span>
-      </span>
       <button class="btn" id="login-btn" onclick="login()">Se connecter avec Google</button>
       <button class="btn hidden" id="logout-btn" onclick="logout()">Déconnexion</button>
       <button class="btn" onclick="window.print()">Imprimer</button>
@@ -943,9 +939,6 @@ const allowedEmails = [
 
 const loginBtn = document.getElementById('login-btn');
 const logoutBtn = document.getElementById('logout-btn');
-const currentUserSummary = document.getElementById('current-user-summary');
-const userNameEl = document.getElementById('user-name');
-const userPhotoEl = document.getElementById('user-photo');
 const appMain = document.getElementById('app-main');
 const loginScreen = document.getElementById('login-screen');
 const usersRef = collection(firestore, 'onlineUsers');
@@ -955,7 +948,6 @@ let usersUnsubscribe = null;
 function setAuthMode(signedIn){
   loginBtn.classList.toggle('hidden', signedIn);
   logoutBtn.classList.toggle('hidden', !signedIn);
-  currentUserSummary.classList.toggle('hidden', !signedIn);
 }
 
 function showLogin(){
@@ -985,12 +977,12 @@ function startRealtimeListeners(){
 
       const usersEl = document.getElementById('users');
       if(usersEl){
-        usersEl.innerHTML = users.length > 0 ? users.map(u => `
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        usersEl.innerHTML = users.map(u => `
+          <div style="display:flex;align-items:center;gap:10px">
             <img src="${u.photo || ''}" width="30" style="border-radius:50%">
             <span>${u.name || ''}</span>
           </div>
-        `).join('') : '<p style="margin:0;color:var(--text3)">Aucun membre connecté.</p>';
+        `).join('');
       }
     }, (error) => {
       console.error('Firestore onlineUsers error:', error);
@@ -1038,6 +1030,10 @@ async function logout(){
   stopRealtimeListeners();
   showLogin();
 }
+
+// Exposer les fonctions de connexion au scope global pour les boutons inline
+window.login = login;
+window.logout = logout;
 
 // ── SYNC STATUS ──
 function setSyncStatus(status){
@@ -1112,12 +1108,6 @@ onAuthStateChanged(auth, (user) => {
     if(!allowedEmails.includes(email)){
       handleUnauthorized();
       return;
-    }
-
-    if(userNameEl) userNameEl.textContent = user.displayName || email || 'Staff';
-    if(userPhotoEl) {
-      userPhotoEl.src = user.photoURL || 'https://www.gravatar.com/avatar/?d=mp&f=y';
-      userPhotoEl.alt = user.displayName ? `${user.displayName} avatar` : 'Avatar';
     }
 
     setAuthMode(true);
