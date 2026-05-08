@@ -238,6 +238,26 @@ table.notion tr:hover td{background:var(--bg2)}
 .page-link .pl-jalon{font-size:11px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text3)}
 .page-link .pl-arrow{color:var(--text3);font-size:12px}
 
+/* ── SHEET EMBED ── */
+.sheet-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;flex-wrap:wrap}
+.sheet-toolbar h2{margin:0}
+.btn-open{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 14px;border-radius:var(--radius);
+  background:#1A73E8;color:white;font-size:13px;font-weight:600;
+  border:none;cursor:pointer;font-family:'Sora',sans-serif;
+  text-decoration:none;transition:background .1s;flex-shrink:0;
+}
+.btn-open:hover{background:#1557B0}
+.sheet-wrap{
+  border:1px solid var(--border);border-radius:6px;overflow:hidden;
+  background:var(--bg2);position:relative;
+}
+.sheet-wrap iframe{
+  width:100%;height:500px;border:none;display:block;
+}
+.sheet-note{font-size:12px;color:var(--text3);margin-top:8px;font-style:italic}
+
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   .sidebar{width:200px}
@@ -308,6 +328,13 @@ table.notion tr:hover td{background:var(--bg2)}
       <span class="label">J+60 · Rythme long terme</span>
       <span class="dot dot-r"></span>
     </div>
+
+    <div class="nav-section">Ressources</div>
+    <div class="nav-item" onclick="showPage('sheet')">
+      <span class="icon">📊</span>
+      <span class="label">Suivi — Google Sheet</span>
+      <span class="dot" style="background:#1A73E8"></span>
+    </div>
   </div>
   <div class="sidebar-footer">Staff — Confidentiel</div>
 </nav>
@@ -321,6 +348,10 @@ table.notion tr:hover td{background:var(--bg2)}
       <span class="current">🗺️ Roadmap</span>
     </div>
     <div class="topbar-right">
+      <span id="sync-status" style="font-size:12px;display:flex;align-items:center;gap:5px;color:var(--text3)">
+        <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:#ccc;display:inline-block"></span>
+        <span id="sync-label">Connexion...</span>
+      </span>
       <button class="btn" onclick="window.print()">Imprimer</button>
     </div>
   </div>
@@ -812,10 +843,118 @@ Semaine 4 : Déploiement + annonce + surveillance</div>
       </ul>
     </div>
 
+    <!-- ══ SHEET ══ -->
+    <div class="page" id="page-sheet">
+      <div class="page-icon">📊</div>
+      <div class="page-title">Suivi — Google Sheet</div>
+      <div class="page-subtitle">Document partagé · Lecture directe · Édition dans Google Sheets</div>
+      <div class="callout green">
+        <span class="ci">ℹ️</span>
+        <div class="ct">Ce document est partagé et utilisé par l'équipe. L'aperçu ci-dessous est en <strong>lecture seule</strong>. Cliquez sur "Ouvrir pour éditer" pour modifier le document dans Google Sheets.</div>
+      </div>
+      <div class="page-divider"></div>
+      <div class="sheet-toolbar">
+        <h2 class="block" style="margin:0">📋 Aperçu du document</h2>
+        <a class="btn-open" href="https://docs.google.com/spreadsheets/d/1VQIit1eqwrvXjo9utH5zYewtYWAzjHUQDx58ww4teKQ/edit?usp=drive_link" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Ouvrir pour éditer
+        </a>
+      </div>
+      <div class="sheet-wrap">
+        <iframe
+          src="https://docs.google.com/spreadsheets/d/1VQIit1eqwrvXjo9utH5zYewtYWAzjHUQDx58ww4teKQ/preview"
+          allowfullscreen
+          loading="lazy"
+        ></iframe>
+      </div>
+      <p class="sheet-note">⚠️ Si le document demande une connexion Google, assurez-vous d'être connecté à votre compte Google dans ce navigateur.</p>
+    </div>
+
   </div><!-- /content -->
 </main>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ── CONFIG FIREBASE ──
+const firebaseConfig = {
+  apiKey: "AIzaSyBk4qFd8H7llFiVeAwNCM1P8RGQO2Hinjs",
+  authDomain: "lgc---server.firebaseapp.com",
+  projectId: "lgc---server",
+  storageBucket: "lgc---server.firebasestorage.app",
+  messagingSenderId: "590098829371",
+  appId: "1:590098829371:web:6f801ca2548aad12780c1e",
+  databaseURL: "https://lgc---server-default-rtdb.europe-west1.firebasedatabase.app"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── SYNC STATUS ──
+function setSyncStatus(status){
+  const dot = document.getElementById('sync-dot');
+  const label = document.getElementById('sync-label');
+  if(status === 'ok'){
+    dot.style.background = '#1FAD7E';
+    label.textContent = 'Synchronisé';
+  } else if(status === 'saving'){
+    dot.style.background = '#C8791A';
+    label.textContent = 'Sauvegarde...';
+  } else {
+    dot.style.background = '#B84A2A';
+    label.textContent = 'Hors ligne';
+  }
+}
+
+// ── ASSIGNER DES IDS AUX CHECKBOXES ──
+function assignCheckboxIds(){
+  document.querySelectorAll('.page').forEach(page => {
+    const pageId = page.id.replace('page-','');
+    page.querySelectorAll('.checklist li').forEach((li, idx) => {
+      li.dataset.cbid = `${pageId}_${idx}`;
+    });
+  });
+}
+
+// ── ÉCOUTER FIREBASE EN TEMPS RÉEL ──
+function listenToCheckboxes(){
+  const checkRef = ref(db, 'checkboxes');
+  onValue(checkRef, (snapshot) => {
+    const data = snapshot.val() || {};
+    document.querySelectorAll('.checklist li[data-cbid]').forEach(li => {
+      const id = li.dataset.cbid;
+      const checked = data[id] === true;
+      const box = li.querySelector('.check-box');
+      const label = li.querySelector('.check-label');
+      if(checked){
+        box.classList.add('checked');
+        label.classList.add('done');
+      } else {
+        box.classList.remove('checked');
+        label.classList.remove('done');
+      }
+    });
+    setSyncStatus('ok');
+  }, (error) => {
+    console.error(error);
+    setSyncStatus('offline');
+  });
+}
+
+// ── TOGGLE CHECKBOX → SAUVEGARDER DANS FIREBASE ──
+window.toggle = function(li){
+  const id = li.dataset.cbid;
+  if(!id) return;
+  const box = li.querySelector('.check-box');
+  const isChecked = !box.classList.contains('checked');
+  setSyncStatus('saving');
+  set(ref(db, `checkboxes/${id}`), isChecked)
+    .then(() => setSyncStatus('ok'))
+    .catch(() => setSyncStatus('offline'));
+};
+
+// ── NAVIGATION ──
 const pages = {
   index:{title:'🗺️ Roadmap',breadcrumb:['🗺️ Roadmap']},
   j14:{title:'J-14 · Audit des mods',breadcrumb:['🗺️ Roadmap','J-14']},
@@ -825,17 +964,18 @@ const pages = {
   j21:{title:'J+21 · Serveur test Lot 1',breadcrumb:['🗺️ Roadmap','J+21']},
   j30:{title:'J+30 · Vague 1',breadcrumb:['🗺️ Roadmap','J+30']},
   j60:{title:'J+60 · Long terme',breadcrumb:['🗺️ Roadmap','J+60 ⭐']},
+  sheet:{title:'📊 Suivi Google Sheet',breadcrumb:['🗺️ Roadmap','📊 Suivi']},
 };
 
-function showPage(id){
+window.showPage = function(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>{
     if(n.getAttribute('onclick')===`showPage('${id}')`) n.classList.add('active');
   });
-  const info=pages[id];
-  const bc=document.getElementById('breadcrumb');
+  const info = pages[id];
+  const bc = document.getElementById('breadcrumb');
   if(info.breadcrumb.length===1){
     bc.innerHTML=`<span class="current">${info.breadcrumb[0]}</span>`;
   } else {
@@ -846,15 +986,12 @@ function showPage(id){
     ).join('');
   }
   document.querySelector('.content').scrollTop=0;
-  document.title=info.title+' — Arma Reforger Staff';
-}
+  document.title=info.title+' — LGC Staff';
+};
 
-function toggle(li){
-  const box=li.querySelector('.check-box');
-  const label=li.querySelector('.check-label');
-  box.classList.toggle('checked');
-  label.classList.toggle('done');
-}
+// ── INIT ──
+assignCheckboxIds();
+listenToCheckboxes();
 </script>
 </body>
 </html>
